@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
@@ -96,3 +94,51 @@ def dE(Y, P, cables, bars, ms, N, M, consts):
     dE_cable = k * elast_cable[M:]
 
     return (dE_ext + dE_bar + dE_cable).flatten()
+
+def cmin(X):        
+    """converting inequality constraint to equality constraints
+
+    Args:
+        X (_type_): takes in a flattend node matrix
+
+    Returns:
+        Y: a modified flattended matrix, where all positive values are set to zero
+    """
+    Y = X.copy()
+    Y[Y > 0] = 0
+    return Y
+
+def Q(X, mu, cables, bars, ms, consts):
+    """ Modified energy function with a quadratic constraint term
+
+    Args:
+        X (_type_): _description_
+        mu (_type_): _description_
+        cables (_type_): _description_
+        bars (_type_): _description_
+        ms (_type_): _description_
+        consts (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    return E(X, cables, bars, ms, consts) + 1/2 * mu * np.sum(cmin(X[2::3])**2)
+
+def dQ(X, mu, cables, bars, ms, consts, N):
+    """The derivative of the modified energy function with a quadratic constraint term.
+
+    Args:
+        X (_type_): _description_
+        mu (_type_): _description_
+        cables (_type_): _description_
+        bars (_type_): _description_
+        ms (_type_): _description_
+        consts (_type_): _description_
+        N (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    barrier = np.zeros(X.shape).flatten()
+    barrier[2::3] = mu * cmin(X[2::3])
+    return dE(X, np.array([]), cables, bars, ms, N, 0, consts) + barrier

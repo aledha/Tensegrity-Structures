@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 

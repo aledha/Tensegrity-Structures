@@ -108,7 +108,7 @@ def cmin(X):
     Y[Y > 0] = 0
     return Y
 
-def Q(X, mu_1, mu_2, cables, bars, ms, consts):
+def Q(X, mu, cables, bars, ms, consts):
     """ Modified energy function with a quadratic constraint term
 
     Args:
@@ -122,9 +122,9 @@ def Q(X, mu_1, mu_2, cables, bars, ms, consts):
     Returns:
         _type_: _description_
     """
-    return E(X, cables, bars, ms, consts) + 1/2 * mu_1 * np.sum(cmin(X[2::3])**2) + 1/2 * mu_2 * (X[0]**2 + X[1]**2)
+    return E(X, cables, bars, ms, consts) + 1/2 * mu * np.sum(cmin(X[2::3])**2)
 
-def dQ(X, mu_1, mu_2, cables, bars, ms, consts, N):
+def dQ(X, mu, cables, bars, ms, consts, N):
     """The derivative of the modified energy function with a quadratic constraint term.
 
     Args:
@@ -140,7 +140,5 @@ def dQ(X, mu_1, mu_2, cables, bars, ms, consts, N):
         _type_: _description_
     """
     barrier = np.zeros(X.shape).flatten()
-    barrier[2::3] = mu_1 * cmin(X[2::3])
-    barrier[0] = mu_2 * X[0]
-    barrier[1] = mu_2 * X[1]
+    barrier[2::3] = mu * cmin(X[2::3])
     return dE(X, np.array([]), cables, bars, ms, N, 0, consts) + barrier 

@@ -60,9 +60,14 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         (array(N, 3)): solution
     """
     original_limits = cplot.plot_points(X0.reshape((N,3)), bars, cables, M, title = 'Original system')
-
-    P = X0[:3 * M]                      # Fixed nodes
-    Y0 = X0[3 * M:]                     # Variable nodes
+    if M == 0:      # Ground constraints
+        P = X0[:2]
+        Y0 = X0[2:]
+        var_length = 3*N - 2
+    else:           # Fixed nodes
+        var_length = 3*(N - M)
+        P = X0[:3 * M]                      # Fixed nodes
+        Y0 = X0[3 * M:]                     # Variable nodes
 
     c1, c2 = 0.025, 0.2                 # Backtracking parameters
 
@@ -73,9 +78,9 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
 
     sk = Y1 - Y0
     yk = df(Y1) - df(Y0)
-    sk = np.array([sk]).reshape((3*(N-M), 1))
-    yk = np.array([yk]).reshape((3*(N-M), 1))
-    H = (sk.T @ yk) / (yk.T @ yk) * np.eye(3 * (N - M))
+    sk = np.array([sk]).reshape((var_length, 1))
+    yk = np.array([yk]).reshape((var_length, 1))
+    H = (sk.T @ yk) / (yk.T @ yk) * np.eye(var_length)
 
     for k in range(maxiter):
         p = -H @ df(Y1)
@@ -87,16 +92,12 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         sk = Y1 - Y0
         yk = df(Y1) - df(Y0)
 
-        sk = np.array([sk]).reshape((3*(N-M), 1))
-        yk = np.array([yk]).reshape((3*(N-M), 1))
+        sk = np.array([sk]).reshape((var_length, 1))
+        yk = np.array([yk]).reshape((var_length, 1))
 
         Hkyk = H@yk
         Sk = 1 / (yk.T @ sk)
         H = H.copy() - Sk * (sk @ Hkyk.T + Hkyk @ sk.T) + sk @ sk.T * (Sk**2 * Hkyk.T @ yk + Sk)
-
-        #if M == 0:              # Fix coordinate system to the first node
-            #Y1[0::3] -= Y1[0]
-            #Y1[1::3] -= Y1[1]
 
         if np.linalg.norm(sk) < tol or np.linalg.norm(yk) < tol:
             print("Converged after", k, "iterations")

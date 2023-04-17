@@ -146,7 +146,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
 def with_ground_quad_constraints():
 
 
-    g, rho, c, k = 0.01, 0.1, 1, 0.1
+    g, rho, c, k = 0.0001, 0.1, 1, 0.1
     consts = [g, rho, c, k]
     N = 8
     M = 0
@@ -164,8 +164,7 @@ def with_ground_quad_constraints():
     Y0 = Ystar
 
     X0 = np.vstack((P, Y0))
-    X0[:, 0] -= X0[0, 0]
-    X0[:, 1] -= X0[0, 1]
+    X0 = X0.flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -177,20 +176,19 @@ def with_ground_quad_constraints():
 
     ms = np.zeros(N) * 0.001
 
-    mu_1 = 10000
-    mu_2 = 0.001
+    mu = 1000
 
-    def f(X):
-        return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
+    def f(Y):
+        return efunc.Q(np.concatenate((X0[:2], Y)), mu, cables, bars, ms, consts)
 
-    def df(X):
-        return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
+    def df(Y):
+        return efunc.dQ(np.concatenate((X0[:2], Y)), mu, cables, bars, ms, consts, N)[2:]
 
-    Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6)
-    print(Y.reshape(N, 3))
+    Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, 800, f, df, tol = 1e-6)
+    print(np.concatenate((X0[:2], Y)).reshape(N, 3))
 
 def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
-                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 200):
+                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 800):
 
     
     consts = [g, rho, c, k]
@@ -279,14 +277,16 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
     for i, j in cables_indices.T:
         cables[i,j] = np.linalg.norm(X0[i] - X0[j]) * 0.95
 
+    X0 = X0.flatten()
+
     ms = np.ones(N) * 0.1
-    mu_1 = 10000
-    mu_2 = 0.1
+    mu = 10000
 
-    def f(X):
-        return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
 
-    def df(X):
-        return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
+    def f(Y):
+        return efunc.Q(np.concatenate((X0[:2], Y)), mu, cables, bars, ms, consts)
+
+    def df(Y):
+        return efunc.dQ(np.concatenate((X0[:2], Y)), mu, cables, bars, ms, consts, N)[2:]
 
     Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df, keep_limits=[False, False, True])

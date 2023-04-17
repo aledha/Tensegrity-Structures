@@ -94,9 +94,9 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         Sk = 1 / (yk.T @ sk)
         H = H.copy() - Sk * (sk @ Hkyk.T + Hkyk @ sk.T) + sk @ sk.T * (Sk**2 * Hkyk.T @ yk + Sk)
 
-        if M == 0:              # Fix coordinate system to the first node
-            Y1[0::3] -= Y1[0]
-            Y1[1::3] -= Y1[1]
+        #if M == 0:              # Fix coordinate system to the first node
+            #Y1[0::3] -= Y1[0]
+            #Y1[1::3] -= Y1[1]
 
         if np.linalg.norm(sk) < tol or np.linalg.norm(yk) < tol:
             print("Converged after", k, "iterations")

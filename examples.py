@@ -154,9 +154,6 @@ def with_ground_quad_constraints():
                 [-1, 1, 0.1],
                 [-1, -1, 0.1],
                 [1, -1, 0.1]])
-    Y0 = P.copy()
-    Y0[:, 2] += 4
-    Y0[:, 0:1] *= 0.5
 
     s, t = 0.70970, 9.54287
     Ystar = np.array([[-s,0,t], 
@@ -165,31 +162,29 @@ def with_ground_quad_constraints():
                 [0,s,t]])
 
     Y0 = Ystar
-    #Y0 = np.roll(Y0, -1, axis = 0)
-    #Y0 = np.flip(Y0, axis = 0)
-    #P[0, 2] = 0.5
 
     X0 = np.vstack((P, Y0))
+    X0[:, 0] -= X0[0, 0]
+    X0[:, 1] -= X0[0, 1]
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
 
-    cables[0, 1], cables[1, 2], cables[2, 3], cables[0, 3] = [1] * 4
+    cables[0, 1], cables[1, 2], cables[2, 3], cables[0, 3] = [2] * 4
     bars[0, 4], bars[1, 5], bars[2, 6], bars[3, 7] = [10] * 4
     cables[0, 7], cables[1, 4], cables[2, 5], cables[3, 6] = [8] * 4
     cables[4, 5], cables[4, 7], cables[5, 6], cables[6, 7] = [1] * 4
 
     ms = np.zeros(N) * 0.001
 
-    mu = 10000
-    #print(Q(X0.flatten(), mu, cables, bars, ms, consts))
-    #print(dQ(X0.flatten(), mu, cables, bars, ms, consts))
+    mu_1 = 10000
+    mu_2 = 0.001
 
     def f(X):
-        return efunc.Q(X, mu, cables, bars, ms, consts)
+        return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
 
     def df(X):
-        return efunc.dQ(X, mu, cables, bars, ms, consts, N)
+        return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
     Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6)
     print(Y.reshape(N, 3))
@@ -285,11 +280,13 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
         cables[i,j] = np.linalg.norm(X0[i] - X0[j]) * 0.95
 
     ms = np.ones(N) * 0.1
+    mu_1 = 10000
+    mu_2 = 0.1
 
     def f(X):
-        return efunc.Q(X, mu, cables, bars, ms, consts)
+        return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
 
     def df(X):
-        return efunc.dQ(X, mu, cables, bars, ms, consts, N)
+        return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
     Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df, keep_limits=[False, False, True])

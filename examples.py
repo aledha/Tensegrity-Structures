@@ -146,7 +146,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
 def with_ground_quad_constraints():
 
 
-    g, rho, c, k = 0.01, 0.1, 1, 0.1
+    g, rho, c, k = 9.81, 0.1, 100000, 1000
     consts = [g, rho, c, k]
     N = 8
     M = 0

@@ -4,7 +4,7 @@ np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
 
-def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "Tensegrity system", simplify = False, plot_view = 'z'):
+def plot_points(X0, X1, cables, bars, M, gradients, keep_zlim = False, title = "Tensegrity system", zprojection = True, plot_view = 'z'):
     """ Plotting 3D tensegrity system
 
     Args:
@@ -14,11 +14,12 @@ def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "
         cables (array(N, N)): neighbour array. cables[i, j] = l_ij. if cables[i, j] = 0, then there is no connetion
         M (int): number of fixed nodes
         title (str, optional): The title of the resulting 3D plot. Defaults to "Tensegrity system".
-        simplify (bool, optional): Removes clutter in the plot to better show more complex systems. Defaults to False
-        plot_view (char): Either 'x', 'y', or 'z'. Chooses which plane to plot. 
-                          For example, 'z' would result in plotting 'xy' plane
+        zprojection (bool, optional): Projection lines down.
+        plot_view (string): Either 'x', 'y', or 'z'. Chooses which plane to plot. 
+                            For example, 'z' would result in plotting 'xy' plane
     """
     fig = plt.figure(1, figsize = (20, 4))
+    fig.suptitle(title, fontsize = 16, y = 1)
 
     ax0 = fig.add_subplot(141, projection = '3d')   # Initial system
     ax1 = fig.add_subplot(142, projection = '3d')   # After optimization
@@ -26,7 +27,7 @@ def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "
     ax3 = fig.add_subplot(144)                      # Log-log of gradient
 
     ax0.set_title('Initial system')
-    ax1.set_title(title)
+    ax1.set_title('System after optimization')
 
     x0, y0, z0 = X0[0::3], X0[1::3], X0[2::3]
     x1, y1, z1 = X1[0::3], X1[1::3], X1[2::3]
@@ -37,7 +38,7 @@ def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "
     ax1.scatter(x1[M:], y1[M:], z1[M:], s = 50, c = 'blue')    # Variable nodes
 
     # Projection down on z
-    if simplify == False:
+    if zprojection:
         z0_lim = ax0.get_zlim3d()[0]
         z1_lim = ax1.get_zlim3d()[0]
         for i in range(len(z0)):
@@ -63,7 +64,7 @@ def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "
         return ValueError('plot_view needs to either be x, y or z')
     plane_string = 'xyz'.replace(plot_view, '')         # String manipulation for title and axis labels
     
-    ax2.set_title(title + ', in ' + plane_string + ' plane' )
+    ax2.set_title('System after optimization, in ' + plane_string + ' plane' )
     ax2.scatter(axis1_2d[:M], axis2_2d[:M], s = 50, c = 'red')     # Fixed nodes
     ax2.scatter(axis1_2d[M:], axis2_2d[M:], s = 50, c = 'blue')    # Variable nodes
     ax2.grid(True)
@@ -85,7 +86,8 @@ def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "
 
     # Plotting norm of gradient in each iteration
     ax3.set_title(r'Log-log plot of $||\nabla E||_2$ in each iteration')
-    ax3.loglog(gradients)
+    ax3.plot(gradients)
+    ax3.set_yscale('log')
     ax3.grid('True')
     ax3.set_xlabel('Iteration')
     ax3.set_ylabel(r'$||\nabla E||_2$')

@@ -5,7 +5,7 @@ np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
 def line_search(x, p, c1, c2, f, df, maxiter = 100):
-    """ Line search using Wolfe conditions
+    """ Line search using strong Wolfe conditions
 
     Args:
         x (array): initial vector
@@ -41,20 +41,18 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
         iter += 1
     return alpha
 
-def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting system', keep_zlim = False, plot_view = 'z'):
+def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6):
     """
-    BFGS algorithm to find a local minimiser of a tensegrity system, using fixed nodes. Also plots the solution
+    BFGS algorithm to find a local minimiser of a tensegrity system, either with fixed nodes or ground constraint.
 
     Args:
         X0 (array(N, 3)): x,y,z coordinates of nodes
         N (int): number of nodes
         M (int): number of fixed nodes
-        cables (array(N, N)): neighbour array. cables[i, j] = l_ij. if cables[i, j] = 0, then there is no connetion
-        bars (array(N, N)): neighbour array. bars[i, j] = l_ij. if bars[i, j] = 0, then there is no connetion
         maxiter (int): number of iteriations
         f (func): function to minimize
         df (func): gradient of f
-        keep_limits (list of bool, optional): Keep limits between plots in x, y, and z axis respectively
+        tol (float): tolerance for when to stop iteration. Depends on the difference in the node positions.
 
     Returns:
         (array(N, 3)): solution
@@ -65,7 +63,7 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting 
 
     c1, c2 = 0.025, 0.2                 # Backtracking parameters
 
-    # First: Gradient descent
+    # First: One step of gradient descent
     grad = df(Y0)
     p = -grad
     alpha = line_search(Y0, p, c1, c2, f, df)
@@ -78,7 +76,7 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting 
     yk = np.array([yk]).reshape((3*(N-M), 1))
     H = (sk.T @ yk) / (yk.T @ yk) * np.eye(3 * (N - M))
 
-    gradients = np.zeros(maxiter)
+    gradients = np.zeros(maxiter)       # Array to store the norm of gradients
     for k in range(maxiter):
         gradients[k] = np.linalg.norm(grad)
 
@@ -103,9 +101,9 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting 
 
         if np.linalg.norm(sk) < tol:
             gradients[k+1] = np.linalg.norm(grad_new)
+            gradients = gradients[:k+2]
             print("Converged after", k, "iterations")
             break
 
     X1 = (np.concatenate((P, Y1)))              # Reassembling the fixed points
-    cplot.plot_points(X0, X1, bars, cables, M, gradients, title = title, keep_zlim = keep_zlim, plot_view = plot_view)
-    return X1
+    return X1, gradients

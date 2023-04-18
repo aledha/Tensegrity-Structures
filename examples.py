@@ -1,6 +1,7 @@
 import numpy as np
 import energy_functions as efunc
 import solver as solver
+import custom_plot_structures as cplot
 
 np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
@@ -14,7 +15,7 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
                 [-5, -5, 0],
                 [5, -5, 0]])
     Y0 = (np.random.rand(N-M, 3) - 0.5)*1000
-    X0 = np.vstack((P, Y0))
+    X0 = np.vstack((P, Y0)).flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -30,7 +31,8 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
     def df(Y):
         return efunc.dE(Y, P, cables, bars, ms, N, M, consts)
 
-    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Cable system')
     print(X1.reshape(N, 3))
     
 def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 1000):
@@ -43,7 +45,7 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     Y0 = np.random.rand(N-M, 3) - 0.5
     Y0[:, 2] = 4
     P[0, 2] = 0.5
-    X0 = np.vstack((P, Y0))
+    X0 = np.vstack((P, Y0)).flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -61,7 +63,8 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     def df(y):
         return efunc.dE(y, P, cables, bars, ms, N, M, consts)
 
-    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'System with cables and bars')
     print(np.float16(X1.reshape(N, 3)))
 
 def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter = 100):
@@ -77,7 +80,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
     Y0[:, 2] += 4
     Y0[-1, 2] = np.sqrt(2) - 1
 
-    X0 = np.vstack((P, Y0))
+    X0 = np.vstack((P, Y0)).flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -100,7 +103,8 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
     def df(Y):
         return efunc.dE(Y, P, cables, bars, ms, N, M, consts)
 
-    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df,  keep_zlim = True, plot_view = 'x')
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Tensegrity table', keep_zlim = True, plot_view='x')
 
 def with_ground_quad_constraints():
 
@@ -122,9 +126,9 @@ def with_ground_quad_constraints():
 
     Y0 = Ystar
 
-    X0 = np.vstack((P, Y0))
-    X0[:, 0] -= X0[0, 0]
-    X0[:, 1] -= X0[0, 1]
+    X0 = np.vstack((P, Y0)).flatten()
+    X0[0::3] -= X0[0]        # Moving structure such that the 
+    X0[1::3] -= X0[1]        # first nodes x,y values are 0
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -145,14 +149,15 @@ def with_ground_quad_constraints():
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6, plot_view = 'z')
+    X1, gradients = solver.BFGS(X0, N, M, 1000, f, df, tol = 1e-6)
+    cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing system', zprojection = False)
     print(X1.reshape(N, 3))
 
 def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
                          tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 500):
 
-    
     consts = [g, rho, c, k]
+    M = 0
 
     # Construct the two towers
     tower_one = np.array([  [0,0,0],
@@ -248,4 +253,6 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df, plot_view = 'x')
+    X0 = X0.flatten()
+    X1, gradients = solver.BFGS(X0, N, 0, max_iter, f, df)
+    cplot.plot_points(X0, X1, cables, bars, 0, gradients, title = 'Free standing bridge', plot_view = 'x', zprojection = False)

@@ -40,9 +40,8 @@ def E(X, cables, bars, ms, consts):
     E_cable = elast_cable * k / 2
     return E_ext + E_bar + E_cable
 
-# Derivatives of the energy functions
 def dE(Y, P, cables, bars, ms, N, M, consts):
-    """ Gradient of target function
+    """ Compute gradient of target function. Only the indices corresponding to the variable nodes are returned.
 
     Args:
         Y (array(3*(N-M))): variable nodes
@@ -99,10 +98,10 @@ def cmin(X):
     """converting inequality constraint to equality constraints
 
     Args:
-        X (_type_): takes in a flattend node matrix
+        X (3*N): takes in a flattend node matrix
 
     Returns:
-        Y: a modified flattended matrix, where all positive values are set to zero
+        Y (3*N): a modified flattended matrix, where all positive values are set to zero
     """
     Y = X.copy()
     Y[Y > 0] = 0
@@ -112,15 +111,16 @@ def Q(X, mu_1, mu_2, cables, bars, ms, consts):
     """ Modified energy function with a quadratic constraint terms
 
     Args:
-        X (array): _description_
-        mu (_type_): _description_
-        cables (_type_): _description_
-        bars (_type_): _description_
-        ms (_type_): _description_
-        consts (_type_): _description_
+        X (3*N): Node matrix
+        mu_1 (float): penalty constant for constraints representing x^(i)_3 > 0
+        mu_2 (float): penalty constant for constraints representing x^(1)_1=x^(1)_2=0
+        cables (array(N, N)): neighbour array. cables[i, j] = l_ij. if cables[i, j] = 0, then there is no connetion
+        bars (array(N, N)): neighbour array. bars[i, j] = l_ij. if bars[i, j] = 0, then there is no connetion
+        ms (array(N)): mass of nodes
+        consts (list): constants g, rho, c, and k
 
     Returns:
-        _type_: _description_
+        float: energy in system, in addition to penalty
     """
     return E(X, cables, bars, ms, consts) + 1/2 * mu_1 * np.sum(cmin(X[2::3])**2) + 1/2 * mu_2 * (X[0]**2 + X[1]**2)
 
@@ -128,16 +128,17 @@ def dQ(X, mu_1, mu_2, cables, bars, ms, consts, N):
     """The derivative of the modified energy function with a quadratic constraint term.
 
     Args:
-        X (_type_): _description_
-        mu (_type_): _description_
-        cables (_type_): _description_
-        bars (_type_): _description_
-        ms (_type_): _description_
-        consts (_type_): _description_
-        N (_type_): _description_
+        X (3*N): Node matrix
+        mu_1 (float): penalty constant for constraints representing x^(i)_3 > 0
+        mu_2 (float): penalty constant for constraints representing x^(1)_1=x^(1)_2=0
+        cables (array(N, N)): neighbour array. cables[i, j] = l_ij. if cables[i, j] = 0, then there is no connetion
+        bars (array(N, N)): neighbour array. bars[i, j] = l_ij. if bars[i, j] = 0, then there is no connetion
+        ms (array(N)): mass of nodes
+        consts (list): constants g, rho, c, and k   
+        N (int): number of nodes
 
     Returns:
-        _type_: _description_
+        array(3*N): gradient of energy, in addition to penalty
     """
     barrier = np.zeros(X.shape).flatten()
     barrier[2::3] = mu_1 * cmin(X[2::3])

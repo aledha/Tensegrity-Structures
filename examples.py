@@ -6,19 +6,7 @@ np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
 def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
-    """ Example of a system of cables (a net) and points. Some of the points are fixed. The solution is known.
-
-    Args:
-        rho (int, optional): _description_. Defaults to 1.
-        c (int, optional): _description_. Defaults to 1.
-        k (int, optional): _description_. Defaults to 3.
-        N (int, optional): _description_. Defaults to 8.
-        M (int, optional): _description_. Defaults to 4.
-        max_iter (int, optional): Max number of iterations for BFGS. Defaults to 100.
-
-    Returns:
-        None
-    """
+    """ Example of a system of cables (a net) and points. Some of the points are fixed. The solution is known."""
     g = 9.81
     consts = [g, rho, c, k]
     P = np.array([[5, 5, 0],
@@ -46,20 +34,7 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
     print(X1.reshape(N, 3))
     
 def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 1000):
-    """ A more complex test case with both cables and bars, with a known solution. 
-
-    Args:
-        g (int, optional): _description_. Defaults to 0.
-        rho (int, optional): _description_. Defaults to 0.
-        c (int, optional): _description_. Defaults to 1.
-        k (float, optional): _description_. Defaults to 0.3.
-        N (int, optional): _description_. Defaults to 8.
-        M (int, optional): _description_. Defaults to 4.
-        max_iter (int, optional): _description_. Defaults to 1000.
-
-    Returns:
-        None
-    """
+    """ A more complex test case with both cables and bars, with a known solution. """
     consts = [g, rho, c, k]
     P = np.array([[1, 1, 0],
                 [-1, 1, 0],
@@ -90,20 +65,7 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     print(np.float16(X1.reshape(N, 3)))
 
 def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter = 100):
-    """ Construction, simulation and plotting of a so-called tensegrity table. 
-
-    Args:
-        g (float, optional): _description_. Defaults to 9.81.
-        rho (int, optional): _description_. Defaults to 0.
-        c (int, optional): _description_. Defaults to 10.
-        k (int, optional): _description_. Defaults to 10.
-        N (int, optional): _description_. Defaults to 10.
-        M (int, optional): _description_. Defaults to 5.
-        max_iter (int, optional): _description_. Defaults to 100.
-
-    Returns:
-        None
-    """
+    """ Construction, simulation and plotting of a so-called tensegrity table."""
     consts = [g, rho, c, k]
     P = np.array([[1, 1, 0],
                 [-1, 1, 0],
@@ -131,14 +93,14 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
 
     ms = 0.001 * np.ones(N)
 
-    def f(y):
-        X = np.concatenate((P.flatten(), y))
+    def f(Y):
+        X = np.concatenate((P.flatten(), Y))
         return efunc.E(X, cables, bars, ms, consts)
 
-    def df(y):
-        return efunc.dE(y, P, cables, bars, ms, N, M, consts)
+    def df(Y):
+        return efunc.dE(Y, P, cables, bars, ms, N, M, consts)
 
-    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
+    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df,  keep_zlim = True, plot_view = 'x')
 
 def with_ground_quad_constraints():
 
@@ -183,7 +145,7 @@ def with_ground_quad_constraints():
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6)
+    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6, plot_view = 'z')
     print(X1.reshape(N, 3))
 
 def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
@@ -286,4 +248,4 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df)
+    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df, plot_view = 'x')

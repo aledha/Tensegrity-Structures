@@ -41,7 +41,7 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
         iter += 1
     return alpha
 
-def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting system'):
+def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting system', keep_zlim = False, plot_view = 'z'):
     """
     BFGS algorithm to find a local minimiser of a tensegrity system, using fixed nodes. Also plots the solution
 
@@ -107,6 +107,5 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting 
             break
 
     X1 = (np.concatenate((P, Y1)))              # Reassembling the fixed points
-    cplot.plot_points(X0, X1, bars, cables, M, gradients, title = title)
-
+    cplot.plot_points(X0, X1, bars, cables, M, gradients, title = title, keep_zlim = keep_zlim, plot_view = plot_view)
     return X1

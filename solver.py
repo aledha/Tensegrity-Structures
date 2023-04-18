@@ -21,8 +21,8 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
     assert(c1 < c2)
     alpha_min, alpha_max = 0, np.inf
     alpha = 1
-    I = f(x + alpha * p) <= f(x) + c1 * alpha * np.inner(df(x), p)                      # Armijo condition
-    II = np.abs(np.inner(df(x + alpha * p), p)) <= c2 * np.abs(np.inner(df(x), p))      # Curvature condition
+    I = f(x + alpha * p) <= f(x) + c1 * alpha * p.T @ df(x)                     # Armijo condition
+    II = np.abs(p.T @ df(x + alpha * p)) <= c2 * np.abs(p.T @ df(x))            # Curvature condition
     iter = 0
     while not (I and II):
         if iter > maxiter:
@@ -36,8 +36,8 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
                 alpha = (alpha_min + alpha_max) / 2
             else:
                 alpha *= 2
-        I = f(x + alpha * p) <= f(x) + c1 * alpha * np.inner(df(x), p)
-        II = np.abs(np.inner(df(x + alpha * p), p)) <= c2 * np.abs(np.inner(df(x), p))
+        I = f(x + alpha * p) <= f(x) + c1 * alpha * p.T @ df(x)                     # Armijo condition
+        II = np.abs(p.T @ df(x + alpha * p)) <= c2 * np.abs(p.T @ df(x))            # Curvature condition
         iter += 1
     return alpha
 
@@ -61,7 +61,7 @@ def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6):
     P = X0[:3 * M]                      # Fixed nodes
     Y0 = X0[3 * M:]                     # Variable nodes
 
-    c1, c2 = 0.025, 0.2                 # Backtracking parameters
+    c1, c2 = 0.02, 0.2                 # Backtracking parameters
 
     # First: One step of gradient descent
     grad = df(Y0)

@@ -140,7 +140,7 @@ def with_ground_quad_constraints():
 
     ms = np.zeros(N) * 0.001
 
-    mu_1 = 10000
+    mu_1 = 100000
     mu_2 = 0.001
 
     def f(X):

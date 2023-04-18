@@ -52,11 +52,11 @@ def plot_points(X, bars, cables, M, lims = [None, None, None], title = "Tensegri
 
     cable_indices = np.asarray(np.where(cables != 0))
     for i, j in cable_indices.T:
-        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], 'b--')
+        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], '--', c = 'red')
 
     bar_indices = np.asarray(np.where(bars != 0))
     for i, j in bar_indices.T:
-        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], 'b-')
+        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], '-', c = 'blue')
 
     # Projection down on z
     if simplify == False:

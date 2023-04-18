@@ -67,9 +67,11 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
     c1, c2 = 0.025, 0.2                 # Backtracking parameters
 
     # First: Gradient descent
-    p = -df(Y0)
+    grad = df(Y0)
+    p = -grad
     alpha = line_search(Y0, p, c1, c2, f, df)
     Y1 = Y0 + alpha * p
+    grad_new = df(Y1)
 
     sk = Y1 - Y0
     yk = df(Y1) - df(Y0)
@@ -78,12 +80,15 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
     H = (sk.T @ yk) / (yk.T @ yk) * np.eye(3 * (N - M))
 
     for k in range(maxiter):
-        p = -H @ df(Y1)
+        grad = grad_new
+        p = -H @ grad
 
         alpha = line_search(Y1, p, c1, c2, f, df)
         Y0 = Y1
         Y1 = Y0 + alpha * p
         
+        grad_new = df(Y1)
+
         sk = Y1 - Y0
         yk = df(Y1) - df(Y0)
 
@@ -93,10 +98,6 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         Hkyk = H@yk
         Sk = 1 / (yk.T @ sk)
         H = H.copy() - Sk * (sk @ Hkyk.T + Hkyk @ sk.T) + sk @ sk.T * (Sk**2 * Hkyk.T @ yk + Sk)
-
-        #if M == 0:              # Fix coordinate system to the first node
-            #Y1[0::3] -= Y1[0]
-            #Y1[1::3] -= Y1[1]
 
         if np.linalg.norm(sk) < tol or np.linalg.norm(yk) < tol:
             print("Converged after", k, "iterations")

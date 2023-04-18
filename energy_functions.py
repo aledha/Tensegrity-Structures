@@ -109,10 +109,10 @@ def cmin(X):
     return Y
 
 def Q(X, mu_1, mu_2, cables, bars, ms, consts):
-    """ Modified energy function with a quadratic constraint term
+    """ Modified energy function with a quadratic constraint terms
 
     Args:
-        X (_type_): _description_
+        X (array): _description_
         mu (_type_): _description_
         cables (_type_): _description_
         bars (_type_): _description_

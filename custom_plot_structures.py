@@ -4,7 +4,7 @@ np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
 
-def plot_points(X, bars, cables, M, lims = [None, None, None], title = "Tensegrity system", simplify = False):
+def plot_points(X0, X1, bars, cables, M, gradients, keep_zlim = False, title = "Tensegrity system", simplify = False):
     """ Plotting 3D tensegrity system
 
     Args:
@@ -19,48 +19,76 @@ def plot_points(X, bars, cables, M, lims = [None, None, None], title = "Tensegri
     Returns:
         list of limits: limits in x, y, and z axis
     """
-    fig = plt.figure(figsize=(12,8))
-    ax = fig.add_subplot(projection = '3d')
-    ax.set_title(title)
-    x, y, z = X[:, 0], X[:, 1], X[:, 2]
+    fig = plt.figure(1, figsize = (20, 4))
+
+    ax0 = fig.add_subplot(141, projection = '3d')
+    ax1 = fig.add_subplot(142, projection = '3d')
+    ax2 = fig.add_subplot(143)
+    ax3 = fig.add_subplot(144)
+
+    ax0.set_title('Initial system')
+    ax1.set_title(title)
+
+    x0, y0, z0 = X0[0::3], X0[1::3], X0[2::3]
+    x1, y1, z1 = X1[0::3], X1[1::3], X1[2::3]
     
-    xlims, ylims, zlims = lims
+    xlims, ylims, zlims = [None, None, None]
     if xlims == None:
-        xmin, xmax = np.min(X[:,0]), np.max(X[:,0])
+        xmin, xmax = np.min(x0), np.max(x0)
         xlims = [xmin - (xmax-xmin) / 4, xmax + (xmax-xmin) / 4]
     if ylims == None:
-        ymin, ymax = np.min(X[:,1]), np.max(X[:,1])
+        ymin, ymax = np.min(y0), np.max(y0)
         ylims = [ymin - (ymax-ymin) / 4, ymax + (ymax-ymin) / 4]
     if zlims == None:
-        zmin, zmax = np.min(X[:,2]), np.max(X[:,2])
+        zmin, zmax = np.min(z0), np.max(z0)
         zlims = [zmin - (zmax-zmin) / 4, zmax + (zmax-zmin) / 4]
 
-    ax.scatter(x[:M], y[:M], z[:M], s = 100, c = 'red')
-    ax.scatter(x[M:], y[M:], z[M:], s = 100, c = 'blue')
+    ax0.scatter(x0[:M], y0[:M], z0[:M], s = 50, c = 'red')     # Fixed nodes
+    ax0.scatter(x0[M:], y0[M:], z0[M:], s = 50, c = 'blue')    # Variable nodes
+    ax1.scatter(x1[:M], y1[:M], z1[:M], s = 50, c = 'red')     # Fixed nodes
+    ax1.scatter(x1[M:], y1[M:], z1[M:], s = 50, c = 'blue')    # Variable nodes
 
+    # Projection down on z
+    z0_lim = ax0.get_zlim3d()[0]
+    z1_lim = ax1.get_zlim3d()[0]
     if simplify == False:
-        ax.plot(x, z, 'r+', zdir='y', zs = ylims[1])    # Projection on xz plane
-        ax.plot(y, z, 'g+', zdir='x', zs = xlims[0])    # Projection on yz plane
+        for i in range(len(z0)):
+            ax0.plot([x0[i], x0[i]], [y0[i], y0[i]], [z0[i], z0_lim], linestyle = (0, (1, 5)), color = 'black')
+            ax1.plot([x1[i], x1[i]], [y1[i], y1[i]], [z1[i], z1_lim], linestyle = (0, (1, 5)), color = 'black')
 
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    ax0.set_xlabel('x')
+    ax0.set_ylabel('y')
+    ax0.set_zlabel('z')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('z')
 
-    ax.set_xlim3d(xlims[0], xlims[1])
-    ax.set_ylim3d(ylims[0], ylims[1])
-    ax.set_zlim3d(zlims[0], zlims[1])
+    # Top-down view
+    ax2.set_title(title + ', top-down view')
+    ax2.scatter(x1[:M], y1[:M], s = 50, c = 'red')     # Fixed nodes
+    ax2.scatter(x1[M:], y1[M:], s = 50, c = 'blue')    # Variable nodes
+    ax2.grid(True)
+    ax2.set_xlabel('x')
+    ax2.set_ylabel('y')
 
     cable_indices = np.asarray(np.where(cables != 0))
     for i, j in cable_indices.T:
-        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], '--', c = 'red')
+        ax0.plot([x0[i], x0[j]], [y0[i], y0[j]], [z0[i], z0[j]], '--', c = 'red')
+        ax1.plot([x1[i], x1[j]], [y1[i], y1[j]], [z1[i], z1[j]], '--', c = 'red')
+        ax2.plot([x1[i], x1[j]], [y1[i], y1[j]], '--', c = 'red')
 
     bar_indices = np.asarray(np.where(bars != 0))
     for i, j in bar_indices.T:
-        ax.plot([x[i], x[j]], [y[i], y[j]], [z[i], z[j]], '-', c = 'blue')
+        ax0.plot([x0[i], x0[j]], [y0[i], y0[j]], [z0[i], z0[j]], '-', c = 'blue')
+        ax1.plot([x1[i], x1[j]], [y1[i], y1[j]], [z1[i], z1[j]], '-', c = 'blue')
+        ax2.plot([x1[i], x1[j]], [y1[i], y1[j]], '-', c = 'blue')
 
-    # Projection down on z
-    if simplify == False:
-        for i in range(len(z)):
-            ax.plot([x[i], x[i]], [y[i], y[i]], [z[i], zlims[0]], linestyle = (0, (1, 5)), color = 'black')
-    plt.show() 
-    return [xlims, ylims, zlims]
+    # Norm of gradient in each iteration
+    ax3.set_title(r'Log-log plot of $||\nabla E||_2$ in each iteration')
+    ax3.loglog(gradients)
+    ax3.grid('True')
+    ax3.set_xlabel('Iteration')
+    ax3.set_ylabel(r'$||\nabla E||_2$')
+    
+    plt.show()
+

@@ -42,8 +42,8 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
     def df(Y):
         return efunc.dE(Y, P, cables, bars, ms, N, M, consts)
 
-    Y = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
-    print(Y.reshape((N-M, 3)))
+    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
+    print(X1.reshape(N, 3))
     
 def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 1000):
     """ A more complex test case with both cables and bars, with a known solution. 
@@ -86,10 +86,8 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     def df(y):
         return efunc.dE(y, P, cables, bars, ms, N, M, consts)
 
-    Y = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
-
-    Y = Y.reshape((N-M, 3))
-    print(np.float16(Y))
+    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
+    print(np.float16(X1.reshape(N, 3)))
 
 def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter = 100):
     """ Construction, simulation and plotting of a so-called tensegrity table. 
@@ -140,8 +138,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
     def df(y):
         return efunc.dE(y, P, cables, bars, ms, N, M, consts)
 
-    Y = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df, keep_limits=[False, False, True])
-    Y = Y.reshape((N-M, 3))
+    X1 = solver.BFGS(X0.flatten(), N, M, cables, bars, max_iter, f, df)
 
 def with_ground_quad_constraints():
 
@@ -186,11 +183,11 @@ def with_ground_quad_constraints():
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6)
-    print(Y.reshape(N, 3))
+    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, 1000, f, df, tol = 1e-6)
+    print(X1.reshape(N, 3))
 
 def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
-                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 200):
+                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 500):
 
     
     consts = [g, rho, c, k]
@@ -289,4 +286,4 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu = 1000, N = 10,
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    Y = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df, keep_limits=[False, False, True])
+    X1 = solver.BFGS(X0.flatten(), N, 0, cables, bars, max_iter, f, df)

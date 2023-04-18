@@ -41,7 +41,7 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
         iter += 1
     return alpha
 
-def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [False, False, False]):
+def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, title = 'Resulting system'):
     """
     BFGS algorithm to find a local minimiser of a tensegrity system, using fixed nodes. Also plots the solution
 
@@ -59,7 +59,6 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
     Returns:
         (array(N, 3)): solution
     """
-    original_limits = cplot.plot_points(X0.reshape((N,3)), bars, cables, M, title = 'Original system')
 
     P = X0[:3 * M]                      # Fixed nodes
     Y0 = X0[3 * M:]                     # Variable nodes
@@ -74,12 +73,15 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
     grad_new = df(Y1)
 
     sk = Y1 - Y0
-    yk = df(Y1) - df(Y0)
+    yk = grad_new - grad
     sk = np.array([sk]).reshape((3*(N-M), 1))
     yk = np.array([yk]).reshape((3*(N-M), 1))
     H = (sk.T @ yk) / (yk.T @ yk) * np.eye(3 * (N - M))
 
+    gradients = np.zeros(maxiter)
     for k in range(maxiter):
+        gradients[k] = np.linalg.norm(grad)
+
         grad = grad_new
         p = -H @ grad
 
@@ -90,7 +92,7 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         grad_new = df(Y1)
 
         sk = Y1 - Y0
-        yk = df(Y1) - df(Y0)
+        yk = grad_new - grad
 
         sk = np.array([sk]).reshape((3*(N-M), 1))
         yk = np.array([yk]).reshape((3*(N-M), 1))
@@ -99,13 +101,12 @@ def BFGS(X0, N, M, cables, bars, maxiter, f, df, tol = 1e-6, keep_limits = [Fals
         Sk = 1 / (yk.T @ sk)
         H = H.copy() - Sk * (sk @ Hkyk.T + Hkyk @ sk.T) + sk @ sk.T * (Sk**2 * Hkyk.T @ yk + Sk)
 
-        if np.linalg.norm(sk) < tol or np.linalg.norm(yk) < tol:
+        if np.linalg.norm(sk) < tol:
+            gradients[k+1] = np.linalg.norm(grad_new)
             print("Converged after", k, "iterations")
             break
-    
-    for i in range(3):
-        if not keep_limits[i]:
-            original_limits[i] = None
-    
-    cplot.plot_points((np.concatenate((P, Y1))).reshape(N, 3), bars, cables, M, lims = original_limits)
-    return Y1
+
+    X1 = (np.concatenate((P, Y1)))              # Reassembling the fixed points
+    cplot.plot_points(X0, X1, bars, cables, M, gradients, title = title)
+
+    return X1

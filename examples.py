@@ -82,8 +82,10 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.1, N = 8, M = 4, max_iter = 100
     print(np.float16(X1.reshape(N, 3)))
     print("2 norm of the difference between numerical and exact solution", np.linalg.norm(X1-Xstar))
 
-def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter = 100):
+def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, max_iter = 100):
     """ Construction, simulation and plotting of a so-called tensegrity table."""
+    N = 10 
+    M = 5
     consts = [g, rho, c, k]
     P = np.array([[1, 1, 0],
                 [-1, 1, 0],
@@ -121,10 +123,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter 
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Tensegrity table', keep_zlim = True, plot_view='x')
 
-def with_ground_quad_constraints():
-
-
-    g, rho, c, k = 9.81, 0.1, 100000, 1000
+def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1 = 10, mu_2 = 0.001, max_iter = 100):
     consts = [g, rho, c, k]
     N = 8
     M = 0
@@ -153,10 +152,7 @@ def with_ground_quad_constraints():
     cables[0, 7], cables[1, 4], cables[2, 5], cables[3, 6] = [8] * 4
     cables[4, 5], cables[4, 7], cables[5, 6], cables[6, 7] = [1] * 4
 
-    ms = np.zeros(N) * 0.001
-
-    mu_1 = 100000
-    mu_2 = 0.001
+    ms = np.zeros(N)
 
     def f(X):
         return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
@@ -164,14 +160,15 @@ def with_ground_quad_constraints():
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1, gradients = solver.BFGS(X0, N, M, 1000, f, df, tol = 1e-6)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df, tol = 1e-6)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing system', zprojection = False)
     print(X1.reshape(N, 3))
 
-def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu_1 = 1000, mu_2 = 0.1, N = 10,
-                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 500):
+def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 = 0.1,
+                         tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 1000):
 
     consts = [g, rho, c, k]
+    N = 10
     M = 0
 
     # Construct the two towers
@@ -263,7 +260,6 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu_1 = 1000, mu_2 = 
         cables[i,j] = np.linalg.norm(X0[i] - X0[j]) * 0.95
 
     ms = np.ones(N) * 0.1
-    #ms[0], ms[2], ms[1+6], ms[3+6] = [1] * 4
 
     def f(X):
         return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)
@@ -272,5 +268,5 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu_1 = 1000, mu_2 = 
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
     X0 = X0.flatten()
-    X1, gradients = solver.BFGS(X0, N, 0, max_iter, f, df)
-    cplot.plot_points(X0, X1, cables, bars, 0, gradients, title = 'Free standing bridge', plot_view = 'x', zprojection = False)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing bridge', plot_view = 'x', zprojection = False)

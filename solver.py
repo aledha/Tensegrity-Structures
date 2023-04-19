@@ -41,7 +41,7 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
         iter += 1
     return alpha
 
-def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6, Xstar = None):
+def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6):
     """
     BFGS algorithm to find a local minimiser of a tensegrity system, either with fixed nodes or ground constraint.
 
@@ -53,7 +53,6 @@ def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6, Xstar = None):
         f (func): function to minimize
         df (func): gradient of f
         tol (float): tolerance for when to stop iteration. Depends on the difference in the node positions.
-        Xstar (array(3*N) or None): 
 
     Returns:
         (array(3*N)): solution
@@ -105,6 +104,6 @@ def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6, Xstar = None):
             gradients = gradients[:k+2]
             print("Converged after", k, "iterations")
             break
-
+    
     X1 = (np.concatenate((P, Y1)))              # Reassembling the fixed points
     return X1, gradients

@@ -16,6 +16,12 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
                 [5, -5, 0]])
     Y0 = (np.random.rand(N-M, 3) - 0.5)*1000
     X0 = np.vstack((P, Y0)).flatten()
+    # Exact solution
+    Ystar = np.array([[2,2,-3/2], 
+                    [-2, 2, -3/2],
+                    [-2,-2,-3/2],
+                    [2,-2,-3/2]])
+    Xstar = np.vstack((P, Ystar)).flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -33,9 +39,10 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
 
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Cable system')
-    print(X1.reshape(N, 3))
+    print("System after optimizing: ", X1.reshape(N, 3))
+    print("2 norm of the difference between numerical and exact solution", np.linalg.norm(X1-Xstar))
     
-def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 1000):
+def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.1, N = 8, M = 4, max_iter = 1000):
     """ A more complex test case with both cables and bars, with a known solution. """
     consts = [g, rho, c, k]
     P = np.array([[1, 1, 0],
@@ -46,6 +53,13 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     Y0[:, 2] = 4
     P[0, 2] = 0.5
     X0 = np.vstack((P, Y0)).flatten()
+    # Exact solution
+    s, t = 0.70970, 9.54287
+    Ystar = np.array([[-s,0,t], 
+                [0, -s, t],
+                [s,0,t],
+                [0,s,t]])
+    Xstar = np.vstack((P, Ystar)).flatten()
 
     cables = np.zeros((N, N))
     bars = np.zeros((N, N))
@@ -66,6 +80,7 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.3, N = 8, M = 4, max_iter = 100
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'System with cables and bars')
     print(np.float16(X1.reshape(N, 3)))
+    print("2 norm of the difference between numerical and exact solution", np.linalg.norm(X1-Xstar))
 
 def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, N = 10, M = 5, max_iter = 100):
     """ Construction, simulation and plotting of a so-called tensegrity table."""

@@ -210,6 +210,10 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu_1 = 1000, mu_2 = 
     bars[3, 2+6] = 1
     bars[1, 0+6] = 1
 
+    # Connect tower one and two at the top
+    bars[4, 4+6] = 1
+    bars[5, 5+6] = 1
+
     # Construct cables matrix
     cables = np.zeros((N, N))
 
@@ -244,7 +248,7 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 10, k = 0.1, mu_1 = 1000, mu_2 = 
         cables[i,j] = np.linalg.norm(X0[i] - X0[j]) * 0.95
 
     ms = np.ones(N) * 0.1
-    ms[0], ms[2], ms[1+6], ms[3+6] = [1] * 4
+    #ms[0], ms[2], ms[1+6], ms[3+6] = [1] * 4
 
     def f(X):
         return efunc.Q(X, mu_1, mu_2, cables, bars, ms, consts)

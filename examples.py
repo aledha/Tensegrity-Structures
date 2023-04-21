@@ -123,7 +123,7 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, max_iter = 100):
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Tensegrity table', keep_zlim = True, plot_view='x')
 
-def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1 = 10, mu_2 = 0.001, max_iter = 100):
+def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1 = 10, mu_2 = 0.001, max_iter = 1000):
     consts = [g, rho, c, k]
     N = 8
     M = 0
@@ -160,7 +160,7 @@ def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1
     def df(X):
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
-    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df, tol = 1e-6)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing system', zprojection = False)
     print(X1.reshape(N, 3))
 
@@ -268,5 +268,5 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 =
         return efunc.dQ(X, mu_1, mu_2, cables, bars, ms, consts, N)
 
     X0 = X0.flatten()
-    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df, tol = 1e-6)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing bridge', plot_view = 'x', zprojection = False)

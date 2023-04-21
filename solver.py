@@ -41,7 +41,7 @@ def line_search(x, p, c1, c2, f, df, maxiter = 100):
         iter += 1
     return alpha
 
-def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6):
+def BFGS(X0, N, M, maxiter, f, df, tol = 1e-10):
     """
     BFGS algorithm to find a local minimiser of a tensegrity system, either with fixed nodes or ground constraint.
 
@@ -99,7 +99,7 @@ def BFGS(X0, N, M, maxiter, f, df, tol = 1e-6):
         Sk = 1 / (yk.T @ sk)
         H = H.copy() - Sk * (sk @ Hkyk.T + Hkyk @ sk.T) + sk @ sk.T * (Sk**2 * Hkyk.T @ yk + Sk)
 
-        if np.linalg.norm(sk) < tol:
+        if np.linalg.norm(grad_new) < tol:
             gradients[k+1] = np.linalg.norm(grad_new)
             gradients = gradients[:k+2]
             print("Converged after", k, "iterations")

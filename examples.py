@@ -6,10 +6,9 @@ import custom_plot_structures as cplot
 np.random.seed(1)
 np.set_printoptions(suppress=True, precision=6)
 
-def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
+def cable_sys(g = 9.81, rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 1000):
     """ Example of a system of cables (a net) and points. Some of the points are fixed. The solution is known."""
     np.random.seed(1)
-    g = 9.81
     consts = [g, rho, c, k]
     P = np.array([[5, 5, 0],
                 [-5, 5, 0],
@@ -175,8 +174,6 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 =
                          tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 1000):
 
     consts = [g, rho, c, k]
-    N = 10
-    M = 0
 
     # Construct the two towers
     tower_one = np.array([  [0,0,0],
@@ -199,6 +196,7 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 =
     # Assemble points
     X0 = np.vstack((tower_one, tower_two, left_cable_pts, right_cable_pts))
     N = np.size(X0,0)
+    M = 0
 
     # Construct bars matrix
     bars = np.zeros((N, N))

@@ -8,6 +8,7 @@ np.set_printoptions(suppress=True, precision=6)
 
 def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
     """ Example of a system of cables (a net) and points. Some of the points are fixed. The solution is known."""
+    np.random.seed(1)
     g = 9.81
     consts = [g, rho, c, k]
     P = np.array([[5, 5, 0],
@@ -40,10 +41,13 @@ def cable_sys(rho = 1, c = 1, k = 3, N = 8, M = 4, max_iter = 100):
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Cable system')
     print("System after optimizing: ", X1.reshape(N, 3))
-    print("2 norm of the difference between numerical and exact solution", np.linalg.norm(X1-Xstar))
+    print("2 norm of the difference between numerical and exact solution:", np.linalg.norm(X1-Xstar))
+    print("2 norm of the gradient in the last iteration:", gradients[-1])
     
+
 def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.1, N = 8, M = 4, max_iter = 1000):
     """ A more complex test case with both cables and bars, with a known solution. """
+    np.random.seed(1)
     consts = [g, rho, c, k]
     P = np.array([[1, 1, 0],
                 [-1, 1, 0],
@@ -81,8 +85,9 @@ def cables_and_bars(g = 0, rho = 0, c = 1, k = 0.1, N = 8, M = 4, max_iter = 100
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'System with cables and bars')
     print(np.float16(X1.reshape(N, 3)))
     print("2 norm of the difference between numerical and exact solution", np.linalg.norm(X1-Xstar))
+    print("2 norm of the gradient in the last iteration:", gradients[-1])
 
-def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, max_iter = 100):
+def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, max_iter = 1000):
     """ Construction, simulation and plotting of a so-called tensegrity table."""
     N = 10 
     M = 5
@@ -120,8 +125,9 @@ def tensegrity_table(g = 9.81, rho = 0, c = 10, k = 10, max_iter = 100):
     def df(Y):
         return efunc.dE(Y, P, cables, bars, ms, N, M, consts)
 
-    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
+    X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df, tol = 1e-14)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Tensegrity table', keep_zlim = True, plot_view='x')
+    print("2 norm of the gradient in the last iteration:", gradients[-1])
 
 def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1 = 10, mu_2 = 0.001, max_iter = 1000):
     consts = [g, rho, c, k]
@@ -163,6 +169,7 @@ def with_ground_quad_constraints(g = 9.81, rho = 0.0000001, c = 1, k = 0.1, mu_1
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing system', zprojection = False)
     print(X1.reshape(N, 3))
+    print("2 norm of the gradient in the last iteration:", gradients[-1])
 
 def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 = 0.1,
                          tower_height = 4, tower_distances = 4, bridge_stretch = 1, max_iter = 1000):
@@ -270,3 +277,4 @@ def free_standing_bridge(g = 0.1, rho = 0, c = 200, k = 0.1, mu_1 = 1000, mu_2 =
     X0 = X0.flatten()
     X1, gradients = solver.BFGS(X0, N, M, max_iter, f, df, tol = 1e-6)
     cplot.plot_points(X0, X1, cables, bars, M, gradients, title = 'Free standing bridge', plot_view = 'x', zprojection = False)
+    print("2 norm of the gradient in the last iteration:", gradients[-1])

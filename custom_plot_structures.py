@@ -85,7 +85,7 @@ def plot_points(X0, X1, cables, bars, M, gradients, keep_zlim = False, title = "
         ax2.plot([axis1_2d[i], axis1_2d[j]], [axis2_2d[i], axis2_2d[j]], '-', c = 'blue')
 
     # Plotting norm of gradient in each iteration
-    ax3.set_title(r'Log plot of $||\nabla E||_2$ in each iteration')
+    ax3.set_title(r'Log plot of $||\nabla E(X_K)||_2$ in each iteration')
     ax3.plot(gradients)
     ax3.set_yscale('log')
     ax3.grid('True')

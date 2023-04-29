@@ -11,4 +11,7 @@ The proposed optimization model provides a systematic and efficient way to deter
 shape of tensegrity structures and can have potential applications in the design and analysis of
 various tensegrity-based systems in engineering and space exploration.
 
+![Freestanding_bridge](Freestanding_bridge.png)
 ![Cable_System](Cable_System.png)
+![Cables_and_Bars](Cables_and_Bars.png)
+![Freestanding_system.png](Freestanding_system.png)
